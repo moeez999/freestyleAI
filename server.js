@@ -144,7 +144,6 @@ passport.deserializeUser(async (nickname, done) => {
   }
 });
 
-
 // Configure the session store
 const store = new MongoDBStore({
   uri: uri,
@@ -171,7 +170,7 @@ store.on("error", function (error) {
 // Initialize Passport.js middleware
 app.use(passport.initialize());
 app.use(passport.session());
-
+app.use(express.static(__dirname + "/public/assets/"));
 app.use((req, res, next) => {
   setMimeTypes(res, req.url);
   express.static(path.join(__dirname, "public"), { setHeaders: setMimeTypes })(
@@ -180,7 +179,6 @@ app.use((req, res, next) => {
     next
   );
 });
-
 
 function redirectToAuthIfNotLoggedIn(req, res, next) {
   if (req.isAuthenticated()) {
@@ -201,7 +199,10 @@ async function updateUserPoints(nickname, newPoints) {
   const db = client.db("f-raps-db");
   const usersCollection = db.collection("User");
 
-  await usersCollection.updateOne({ nickname }, { $set: { points: newPoints } });
+  await usersCollection.updateOne(
+    { nickname },
+    { $set: { points: newPoints } }
+  );
 }
 
 app.get("/vote/:nickname", async (req, res) => {
@@ -216,7 +217,11 @@ app.get("/vote/:nickname", async (req, res) => {
   const updatedPoints = user.points + 2;
   await updateUserPoints(nickname, updatedPoints);
 
-  res.status(200).send({ success: true, message: "User points updated", newPoints: updatedPoints });
+  res.status(200).send({
+    success: true,
+    message: "User points updated",
+    newPoints: updatedPoints,
+  });
 });
 
 async function getActiveSessionByNickName(nickname) {
@@ -325,8 +330,7 @@ app.get("/auth/getallusers", async (req, res) => {
 app.get("/battlefield", redirectToAuthIfNotLoggedIn, async (req, res) => {
   const referer = req.header("Referer");
   const protocol = req.header("X-Forwarded-Proto") || req.protocol; // Use the X-Forwarded-Proto header to determine the protocol
-  const expectedReferer =
-    protocol + "://" + req.header("host") + "/auth";
+  const expectedReferer = protocol + "://" + req.header("host") + "/auth";
   if (referer === expectedReferer) {
     // Existing code for handling the battlefield request
     if (req.isAuthenticated() && req.session.loggedIn) {
@@ -343,11 +347,7 @@ app.get("/battlefield", redirectToAuthIfNotLoggedIn, async (req, res) => {
         existingSession.loginTimestamp === req.session.loginTimestamp // Add this condition
       ) {
         res.sendFile(
-          path.join(
-            __dirname,
-            "public/pages/battlefield",
-            "battlefield.html"
-          )
+          path.join(__dirname, "public/pages/battlefield", "battlefield.html")
         );
       } else {
         res.redirect("/auth");
@@ -412,7 +412,7 @@ app.post("/auth/login", (req, res, next) => {
       await activeSessionsCollection.insertOne({
         nickname: user.nickname,
         sessionId: req.session.id,
-        loginTimestamp: req.session.loginTimestamp
+        loginTimestamp: req.session.loginTimestamp,
       });
 
       return res.status(200).end();
@@ -453,7 +453,7 @@ app.post(
           nickname,
           password: hashedPassword,
           profilePicture: profilePictureBase64,
-          points: 0
+          points: 0,
         });
 
         passport.authenticate("local", (err, user) => {

@@ -204,7 +204,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   socket.on("updateUserList", async (users) => {
-    console.log(users)
+    console.log(users);
     await Promise.all(
       users.map(async (user) => {
         const userAlreadyFetched = onlineUsers.some(
@@ -218,7 +218,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       })
     );
-    console.log(users, onlineUsers)
+    console.log(users, onlineUsers);
     await updateUserList(onlineUsers);
 
     usersList.innerHTML = "";
@@ -299,14 +299,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     // const ul = document.createElement("ul");
 
     // Iterate over the ranking data and create li elements for each user
-  let rankingHtml="";
+    let rankingHtml = "";
     ranking.forEach((user) => {
       // const li = document.createElement("li");
       let profilePicture =
-      user.profilePicture && user.profilePicture.startsWith("data:image/")
-      ? user.profilePicture
-      : `data:image/jpeg;base64,${user.profilePicture}`;
-      rankingHtml+='<div class="ranking-items"><img src="'+profilePicture+'" style="width: 60px; height: 60px;" class="img-thumbnail"><span class="ranking-name">'+user.nickname+'</span><span class="ranking-points">'+user.points+'</span></div>'
+        user.profilePicture && user.profilePicture.startsWith("data:image/")
+          ? user.profilePicture
+          : `data:image/jpeg;base64,${user.profilePicture}`;
+      rankingHtml +=
+        '<div class="ranking-items"><img src="' +
+        profilePicture +
+        '" style="width: 60px; height: 60px;" class="img-thumbnail"><span class="ranking-name">' +
+        user.nickname +
+        '</span><span class="ranking-points">' +
+        user.points +
+        "</span></div>";
       // li.innerHTML = `
       //   <img src="${profilePicture}" alt="${user.nickname}'s profile picture" width="50" height="50">
       //   <span style="color:white;">${user.nickname}</span>
@@ -315,10 +322,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       // ul.appendChild(li);
     });
 
-
     // Append the ul to the ranking div
     const rankingDiv = document.getElementById("ranking-list-main");
-    rankingDiv.innerHTML=rankingHtml;
+    rankingDiv.innerHTML = rankingHtml;
   }
   async function getAllUsers() {
     try {
@@ -517,13 +523,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   function createUserListItem(user, onlineUsers) {
     const listItem = document.createElement("div");
     listItem.classList.add("online-item");
-    
+
     const center = document.createElement("center");
-  
+
     const userDBObject = onlineUsers.filter(
       (u) => u.nickname === user.nickname
     )[0];
-  
+
     const avatar = document.createElement("img");
     avatar.id = "online-Image";
     avatar.classList.add("rounded-circle");
@@ -538,22 +544,22 @@ document.addEventListener("DOMContentLoaded", async () => {
           : `data:image/jpeg;base64,${userDBObject?.profilePicture}`;
     }
     center.appendChild(avatar);
-  
+
     const userName = document.createElement("span");
     userName.style.color = "white";
     userName.textContent = user.nickname;
     center.appendChild(userName);
-  
-    const userPoints = document.createElement("span");
-    userPoints.style.color = "white";
-    userPoints.textContent = ` Points: ${userDBObject?.points}`;
-    center.appendChild(userPoints);
-  
-    listItem.appendChild(center);
-  
+
+    // const userPoints = document.createElement("span");
+    // userPoints.style.color = "white";
+    // userPoints.textContent = ` Points: ${userDBObject?.points}`;
+    // center.appendChild(userPoints);
+
+    // listItem.appendChild(center);
+
     // Set a unique identifier for the list item element
     listItem.id = `user-${user.socketId}`;
-  
+
     return listItem;
   }
   function startStopWatch() {
