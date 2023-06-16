@@ -100,6 +100,10 @@ input {
   border-bottom: 1px solid #000000 !important;
 }
 
+.navbar-brand-two {
+  display: none;
+}
+
 #logo-F {
   padding: 5px;
   background-color: red;
@@ -130,7 +134,9 @@ button {
   background-color: #000000 !important;
   color: #ffffff !important;
 }
-
+.login-signup {
+  display: block;
+}
 .loader {
   display: none;
   position: absolute;
@@ -246,12 +252,24 @@ button {
   .background {
     display: none;
   }
-
+  .login-signup {
+    display: none;
+  }
   .forms {
     left: 50%;
   }
   .navbar-brand {
     display: none;
+  }
+  .navbar-brand-two {
+    display: block;
+    font-size: 2rem !important;
+    text-align: center;
+    margin: 0 !important;
+    letter-spacing: 4px;
+  }
+  #logo-F {
+    padding: 0px 10px !important;
   }
 }
 
