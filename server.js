@@ -295,6 +295,7 @@ store.on("error", function (error) {
 // Initialize Passport.js middleware
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(express.static(__dirname + "/public/assets/"));
 
 app.use((req, res, next) => {
   setMimeTypes(res, req.url);
@@ -392,6 +393,13 @@ app.get(
     res.redirect("/battlefield");
   }
 );
+
+// app.get("/battlefield", (req, res) => {
+//   res.sendFile(
+//     path.join(__dirname, "public/pages/battlefield", "battlefield.html")
+//   );
+// });
+
 app.get("/landing-page", (req, res) => {
   res.sendFile(
     path.join(__dirname, "public/pages/landing-page", "landingPage.html")

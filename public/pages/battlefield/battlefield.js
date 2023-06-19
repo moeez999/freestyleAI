@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   );
   const modal = document.getElementById("modal");
   const closeModal = document.getElementById("close-modal");
-  const usersList = document.getElementById("users-list");
+  const usersList = document.getElementById("usersList");
   const countdownElement = document.getElementById("countdown");
   const signoutBtn = document.getElementById("signout-btn");
   const chatInput = document.getElementById("chat-input");
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let opponentReady = false;
   let timeoutIds = [];
   let remoteNickname;
-  let ranking = [];
+  let ranking = await getAllUsers();
 
   // WebRTC related
   const configuration = {
@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Fight button click event
   if (ranking) {
-    displayRanking();
+    displayRanking(ranking);
   } else {
     console.log("Failed to fetch ranking");
   }
@@ -204,6 +204,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   socket.on("updateUserList", async (users) => {
+    console.log(users);
     await Promise.all(
       users.map(async (user) => {
         const userAlreadyFetched = onlineUsers.some(
@@ -217,7 +218,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       })
     );
-    await updateUserList(users);
+    console.log(users, onlineUsers);
+    await updateUserList(onlineUsers);
 
     usersList.innerHTML = "";
     usersList.querySelectorAll("li").forEach((li) => {
@@ -260,7 +262,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   socket.on("chatMessage", (data) => {
-    const messageElement = document.createElement("div");
+    const messageElement = document.createElement("center");
     messageElement.classList.add("chat-message");
     // Add styles
     messageElement.style.backgroundColor = "lightblue";
@@ -292,33 +294,38 @@ document.addEventListener("DOMContentLoaded", async () => {
   //**********************************************
   // UTILITY FUNCTIONS
   //**********************************************
-  async function displayRanking() {
+  function displayRanking(ranking) {
     // Create a new ul element
-    ranking = await getAllUsers();
-    const ul = document.createElement("ul");
+    // const ul = document.createElement("ul");
 
     // Iterate over the ranking data and create li elements for each user
+    let rankingHtml = "";
     ranking.forEach((user) => {
-      const li = document.createElement("li");
-      let profilePicture = user.profilePicture && user.profilePicture.startsWith("data:image/")
-        ? user.profilePicture
-        : `data:image/jpeg;base64,${user.profilePicture}`;
-      li.innerHTML = `
-        <img src="${profilePicture}" alt="${user.nickname}'s profile picture" width="50" height="50">
-        <span>${user.nickname}</span>
-        <span>Points: ${user.points}</span>
-      `;
-      ul.appendChild(li);
+      // const li = document.createElement("li");
+      let profilePicture =
+        user.profilePicture && user.profilePicture.startsWith("data:image/")
+          ? user.profilePicture
+          : `data:image/jpeg;base64,${user.profilePicture}`;
+      rankingHtml +=
+        '<div class="ranking-items"><img src="' +
+        profilePicture +
+        '" style="width: 60px; height: 60px;" class="img-thumbnail"><span class="ranking-name">' +
+        user.nickname +
+        '</span><span class="ranking-points">' +
+        user.points +
+        "</span></div>";
+      // li.innerHTML = `
+      //   <img src="${profilePicture}" alt="${user.nickname}'s profile picture" width="50" height="50">
+      //   <span style="color:white;">${user.nickname}</span>
+      //   <span  style="color:white; float:right">Points: ${user.points}</span>
+      // `;
+      // ul.appendChild(li);
     });
 
     // Append the ul to the ranking div
-    const rankingDiv = document.getElementById("ranking");
-    
-    // Clear the contents of the rankingDiv before appending the new list
-    rankingDiv.innerHTML = "";
-
-    rankingDiv.appendChild(ul);
-}
+    const rankingDiv = document.getElementById("ranking-list-main");
+    rankingDiv.innerHTML = rankingHtml;
+  }
   async function getAllUsers() {
     try {
       const response = await fetch("/auth/getallusers");
@@ -514,38 +521,49 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function createUserListItem(user, onlineUsers) {
-    const listItem = document.createElement("li");
-    listItem.classList.add("user-item");
-    const avatarWrapper = document.createElement("div");
+    const listItem = document.createElement("center");
+    listItem.classList.add("online-item");
+
+    const center = document.createElement("center");
+    center.classList.add("d-flex", "flex-column", "align-items-center");
+
     const userDBObject = onlineUsers.filter(
       (u) => u.nickname === user.nickname
     )[0];
+
     const avatar = document.createElement("img");
+    avatar.id = "online-Image";
+    avatar.classList.add("rounded-circle");
+    avatar.classList.add("shadow-4-strong");
+    avatar.classList.add("gap");
+    avatar.alt = "avatar";
     if (userDBObject) {
       avatar.src =
         userDBObject?.profilePicture &&
         userDBObject?.profilePicture.startsWith("data:image/")
           ? userDBObject?.profilePicture
           : `data:image/jpeg;base64,${userDBObject?.profilePicture}`;
-      avatar.style.width = "80px";
-      avatar.style.height = "80px";
     }
+    center.appendChild(avatar);
 
-    avatarWrapper.appendChild(avatar);
-    listItem.appendChild(avatarWrapper);
-
-    const userNameWrapper = document.createElement("div");
     const userName = document.createElement("span");
+    userName.classList.add("text-center");
+    userName.style.color = "white";
     userName.textContent = user.nickname;
-    userNameWrapper.appendChild(userName);
-    listItem.appendChild(userNameWrapper);
+    center.appendChild(userName);
+
+    // const userPoints = document.createElement("span");
+    // userPoints.style.color = "white";
+    // userPoints.textContent = ` Points: ${userDBObject?.points}`;
+    // center.appendChild(userPoints);
+
+    // listItem.appendChild(center);
 
     // Set a unique identifier for the list item element
     listItem.id = `user-${user.socketId}`;
 
     return listItem;
   }
-
   function startStopWatch() {
     const timerDiv = document.getElementById("timer");
     let secondsLeft = 60;
@@ -665,7 +683,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     initializePeerConnection();
     isInitiator = false;
     socket.emit("leaveRoom");
-    displayRanking();
   }
 
   function initiateWebRTCConnection(createOffer) {
